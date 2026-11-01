@@ -220,10 +220,11 @@ function resetIdle() {
 async function showAdminForUser(user) {
   try {
     if (!(await isAdminSession())) {
+      const diag = " [UID: " + user.uid + " | Code: " + (lastAdminError || "none") + "]";
       await auth.signOut();
       $("loginCard").classList.remove("hidden");
       $("dashboard").classList.add("hidden");
-      showMessage("loginMessage", "This Firebase account is not authorized as administrator.", "err");
+      showMessage("loginMessage", "This Firebase account is not authorized as administrator." + diag, "err");
       return;
     }
     $("loginCard").classList.add("hidden");
@@ -418,12 +419,13 @@ $("adminSearch").addEventListener("input", renderSubmissions);
 $("statusFilter").addEventListener("change", renderSubmissions);
 
 /* ---------- Admin dashboard ---------- */
+let lastAdminError = "";
 async function isAdminSession() {
   if (!(db && auth && auth.currentUser) || auth.currentUser.isAnonymous) return false;
   try {
     await db.ref("adminCheck").once("value"); // readable only by the admin UID in the Rules
     return true;
-  } catch (error) { console.error("Admin check:", error); return false; }
+  } catch (error) { console.error("Admin check:", error); lastAdminError = String((error && (error.code || error.message)) || "unknown").slice(0, 120); return false; }
 }
 
 async function loadSubmissions() {
@@ -516,7 +518,7 @@ async function updateStatus(id) {
     showMessage("adminMessage", "Status updated successfully.", "ok");
   } catch (error) {
     console.error("Update status error:", error);
-    showMessage("adminMessage", "Could not update status. Check your Realtime Database Rules.", "err");
+    showMessage("adminMessage", "Could not update status. Check your Realtime Database Rules. [Code: " + String((error && (error.code || error.message)) || "unknown").slice(0, 160) + " | UID: " + (auth.currentUser ? auth.currentUser.uid : "none") + "]", "err");
   }
 }
 
