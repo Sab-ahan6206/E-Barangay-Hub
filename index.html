@@ -26,6 +26,10 @@
 <div class="field"><label for="submissionType">Submission Type *</label><select id="submissionType" required><option value="">Select</option><option value="Request">Document / Service Request</option><option value="Complaint">Community Complaint</option></select></div>
 <div class="field"><label for="category">Request or Complaint Category *</label><select id="category" required><option value="">Select category</option><option>Barangay Clearance</option><option>Certificate of Residency</option><option>Certificate of Indigency</option><option>Business Clearance</option><option>Other Document Request</option><option>Noise / Disturbance</option><option>Peace and Order</option><option>Garbage / Sanitation</option><option>Road / Drainage</option><option>Community Concern</option><option>Other Complaint</option></select><div class="help">Choose the category that best fits your submission.</div></div>
 <div class="field"><label for="fullName">Full Name *</label><input id="fullName" maxlength="120" placeholder="Enter your full name" autocomplete="name" required></div>
+<div class="field"><label for="gender">Gender *</label><select id="gender" required><option value="">Select gender</option><option>Male</option><option>Female</option></select></div>
+<div class="field"><label for="birthdate">Birthdate *</label><input id="birthdate" type="date" min="1900-01-01" autocomplete="bday" required></div>
+<div class="field"><label for="birthplace">Birthplace *</label><input id="birthplace" maxlength="120" placeholder="City/Municipality, Province" required></div>
+<div class="field"><label for="civilStatus">Civil Status *</label><select id="civilStatus" required><option value="">Select civil status</option><option>Single</option><option>Married</option><option>Widowed</option><option>Separated</option><option>Annulled</option></select></div>
 <div class="field"><label for="phone">Contact Number *</label><input id="phone" type="tel" maxlength="30" placeholder="Enter your contact number" autocomplete="tel" required></div>
 <div class="field"><label for="email">Email Address (Optional)</label><input id="email" type="email" maxlength="160" placeholder="you@example.com" autocomplete="email"></div>
 <div class="field"><label for="address">Complete Address *</label><input id="address" maxlength="250" placeholder="Barangay, City/Municipality" autocomplete="street-address" required></div>
@@ -316,6 +320,10 @@ $("submissionForm").addEventListener("submit", async e => {
     reference: makeReference(),
     type: cleanLine($("submissionType").value),
     name: cleanLine($("fullName").value),
+    gender: cleanLine($("gender").value),
+    birthdate: cleanLine($("birthdate").value),
+    birthplace: cleanLine($("birthplace").value),
+    civilStatus: cleanLine($("civilStatus").value),
     phone: cleanLine($("phone").value),
     email: cleanLine($("email").value).toLowerCase(),
     address: cleanLine($("address").value),
@@ -328,8 +336,12 @@ $("submissionForm").addEventListener("submit", async e => {
     address: data.address, details: data.details,
     type: data.type, documentType: data.documentType
   };
-  if (!data.name || !data.phone || !data.address || !data.type || !data.documentType || !data.details) {
+  if (!data.name || !data.phone || !data.address || !data.type || !data.documentType || !data.details || !data.gender || !data.birthdate || !data.birthplace || !data.civilStatus) {
     showMessage("submitMessage", "Please complete all required fields.", "err"); return;
+  }
+  const bd = new Date(data.birthdate + "T00:00:00");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(data.birthdate) || isNaN(bd.getTime()) || bd > new Date() || bd.getFullYear() < 1900) {
+    showMessage("submitMessage", "Please enter a valid birthdate.", "err"); return;
   }
   const problem = validateSubmission(validationData);
   if (problem) { showMessage("submitMessage", problem, "err"); return; }
@@ -416,6 +428,7 @@ async function doAdminLogin(e) {
     btn.disabled = false; btn.textContent = "Sign In";
   }
 }
+try { const t = new Date(); $("birthdate").max = t.getFullYear() + "-" + String(t.getMonth() + 1).padStart(2, "0") + "-" + String(t.getDate()).padStart(2, "0"); } catch (e) {}
 $("loginForm").addEventListener("submit", doAdminLogin);
 $("logoutBtn").addEventListener("click", async () => {
   try { if (auth) await auth.signOut(); } catch (error) { console.error("Sign-out error:", error); }
@@ -507,7 +520,7 @@ function renderSubmissions() {
       ? `<p><strong>Email:</strong> ${safe(item.email)}</p>`
       : `<p class="smallprint">No valid email address provided.</p>`;
     const existingReply = item.adminReply ? `<p><strong>Previous admin reply:</strong> ${safe(item.adminReply)}</p>` : "";
-    return `<article class="submission"><div class="submission-top"><div><h3>${safe(item.fullName || "Unnamed resident")}</h3><p><strong>Reference:</strong> ${safe(item.referenceNumber || item.id)}</p><p><strong>Type:</strong> ${safe(item.submissionType || "—")} · <strong>Category:</strong> ${safe(item.serviceType || "—")}</p><p><strong>Submitted:</strong> ${safe(formatDate(item.createdAt))}</p></div><div><span class="status-pill">${safe(status)}</span></div></div><p><strong>Contact:</strong> ${safe(item.contactNumber || "—")}</p>${emailBlock}<p><strong>Address:</strong> ${safe(item.address || "—")}</p><p><strong>Details:</strong> ${safe(item.details || "—")}</p>${existingReply}<div class="admin-toolbar"><select id="reply-status-${id}" aria-label="Status for ${safe(item.referenceNumber || item.id)}">${STATUSES.map(st => `<option value="${safe(st)}" ${status === st ? "selected" : ""}>${safe(st)}</option>`).join("")}</select><button class="btn btn-secondary btn-small" type="button" data-update-id="${id}">Save Status</button></div><div class="reply-form"><label for="reply-${id}">Admin reply</label><textarea id="reply-${id}" maxlength="4000" placeholder="Write your official response to the resident..."></textarea><button class="btn btn-primary btn-small" id="send-reply-${id}" type="button" data-reply-id="${id}" ${!item.email || !isEmail(item.email) ? "disabled" : ""}>Reply by Email (Gmail) &amp; Save Status</button></div></article>`;
+    return `<article class="submission"><div class="submission-top"><div><h3>${safe(item.fullName || "Unnamed resident")}</h3><p><strong>Reference:</strong> ${safe(item.referenceNumber || item.id)}</p><p><strong>Type:</strong> ${safe(item.submissionType || "—")} · <strong>Category:</strong> ${safe(item.serviceType || "—")}</p><p><strong>Submitted:</strong> ${safe(formatDate(item.createdAt))}</p></div><div><span class="status-pill">${safe(status)}</span></div></div><p><strong>Gender:</strong> ${safe(item.gender || "—")} · <strong>Birthdate:</strong> ${safe(item.birthdate || "—")} · <strong>Civil Status:</strong> ${safe(item.civilStatus || "—")}</p><p><strong>Birthplace:</strong> ${safe(item.birthplace || "—")}</p><p><strong>Contact:</strong> ${safe(item.contactNumber || "—")}</p>${emailBlock}<p><strong>Address:</strong> ${safe(item.address || "—")}</p><p><strong>Details:</strong> ${safe(item.details || "—")}</p>${existingReply}<div class="admin-toolbar"><select id="reply-status-${id}" aria-label="Status for ${safe(item.referenceNumber || item.id)}">${STATUSES.map(st => `<option value="${safe(st)}" ${status === st ? "selected" : ""}>${safe(st)}</option>`).join("")}</select><button class="btn btn-secondary btn-small" type="button" data-update-id="${id}">Save Status</button></div><div class="reply-form"><label for="reply-${id}">Admin reply</label><textarea id="reply-${id}" maxlength="4000" placeholder="Write your official response to the resident..."></textarea><button class="btn btn-primary btn-small" id="send-reply-${id}" type="button" data-reply-id="${id}" ${!item.email || !isEmail(item.email) ? "disabled" : ""}>Reply by Email (Gmail) &amp; Save Status</button></div></article>`;
   }).join("");
   $("submissionList").querySelectorAll("[data-update-id]").forEach(button => button.addEventListener("click", () => updateStatus(button.dataset.updateId)));
   $("submissionList").querySelectorAll("[data-reply-id]").forEach(button => button.addEventListener("click", () => sendReply(button.dataset.replyId)));
