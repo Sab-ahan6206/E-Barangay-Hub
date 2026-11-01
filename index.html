@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0f766e">
 <meta name="description" content="E-Barangay Hub - Barangay Request and Complaint System">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://www.google.com https://www.recaptcha.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.firebasedatabase.app wss://*.firebasedatabase.app https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://*.firebaseapp.com https://*.cloudfunctions.net https://www.google.com https://www.gstatic.com; frame-src https://www.google.com https://www.recaptcha.net https://*.firebaseapp.com; object-src 'none'; base-uri 'none'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://www.google.com https://www.recaptcha.net https://*.firebasedatabase.app https://*.firebaseio.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.firebasedatabase.app wss://*.firebasedatabase.app https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://*.firebaseapp.com https://*.cloudfunctions.net https://www.google.com https://www.gstatic.com; frame-src https://www.google.com https://www.recaptcha.net https://*.firebaseapp.com https://*.firebasedatabase.app https://*.firebaseio.com; object-src 'none'; base-uri 'none'; form-action 'self'">
 <title>E-Barangay Hub | Barangay Sab-ahan</title>
 <style>
 :root{--ink:#171717;--muted:#150f13;--brand:#00b0f5;--brand2:#c5193e;--pale:#fff9bf;--line:#e5d978;--paper:#fff;--bg:#fffef5;--danger:#b91c1c}
@@ -227,7 +227,7 @@ async function showAdminForUser(user) {
     lastAdminError = "";
     const adminOk = await Promise.race([
       isAdminSession(),
-      new Promise(resolve => setTimeout(() => { lastAdminError = "timeout (database did not respond in 12s)"; resolve(false); }, 12000))
+      new Promise(resolve => setTimeout(() => { lastAdminError = "timeout (database did not respond in 30s)"; resolve(false); }, 30000))
     ]);
     if (!adminOk) {
       const diag = " [UID: " + user.uid + " | Code: " + (lastAdminError || "none") + "]";
