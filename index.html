@@ -356,6 +356,7 @@ $("submissionForm").addEventListener("submit", async e => {
     let msg = "Could not submit right now. Check your internet connection, then try again.";
     if (error && (error.code === "PERMISSION_DENIED" || /permission_denied/i.test(String(error.message)))) msg = "Submission was not accepted. Please wait one minute and try again, or visit the barangay office.";
     else if (error && /network|unavailable/i.test(String(error.message))) msg = "Firebase is temporarily unavailable. Please try again.";
+    msg += " [Code: " + String((error && (error.code || error.message)) || "unknown").slice(0, 120) + "]";
     showMessage("submitMessage", msg, "err");
   } finally {
     btn.disabled = false; btn.textContent = "Submit Form";
