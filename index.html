@@ -219,7 +219,13 @@ function resetIdle() {
 /* ---------- Firebase: current E-Barangay Hub project + Firestore ---------- */
 async function showAdminForUser(user) {
   try {
-    if (!(await isAdminSession())) {
+    showMessage("loginMessage", "Checking administrator access...", "ok");
+    lastAdminError = "";
+    const adminOk = await Promise.race([
+      isAdminSession(),
+      new Promise(resolve => setTimeout(() => { lastAdminError = "timeout (database did not respond in 12s)"; resolve(false); }, 12000))
+    ]);
+    if (!adminOk) {
       const diag = " [UID: " + user.uid + " | Code: " + (lastAdminError || "none") + "]";
       await auth.signOut();
       $("loginCard").classList.remove("hidden");
@@ -227,6 +233,7 @@ async function showAdminForUser(user) {
       showMessage("loginMessage", "This Firebase account is not authorized as administrator." + diag, "err");
       return;
     }
+    hideMessage("loginMessage");
     $("loginCard").classList.add("hidden");
     $("dashboard").classList.remove("hidden");
     $("adminWelcome").textContent = "Signed in as " + (user.email || "authorized administrator");
@@ -234,10 +241,11 @@ async function showAdminForUser(user) {
     await loadSubmissions();
   } catch (error) {
     console.error("Admin authorization check failed:", error);
+    const diag2 = " [Code: " + String((error && (error.code || error.message)) || "unknown").slice(0, 120) + "]";
     await auth.signOut();
     $("loginCard").classList.remove("hidden");
     $("dashboard").classList.add("hidden");
-    showMessage("loginMessage", "Could not verify admin access. Check the Realtime Database Rules and the Admin UID.", "err");
+    showMessage("loginMessage", "Could not verify admin access. Check the Realtime Database Rules and the Admin UID." + diag2, "err");
   }
 }
 
